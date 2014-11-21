@@ -66,15 +66,6 @@ class SendNotificationsFromEntityActivityCommand extends Command
     {
         $sent = 0;
 
-        $cursor = DB::connection((new Activity)->getConnectionName())->collection('activities')->raw(function($collection) use ($since)
-        {
-            return $collection->find([
-                    'activityType' => 'project',
-                    'created_at' => ['$gte' => new MongoDate($since)],
-                ])
-                ->sort(['created_at' => 1]);
-        });
-
         $messages = Activity::whereRaw([
             'activityType' => 'project',
             'created_at' => ['$gte' => new MongoDate($since)],
@@ -82,7 +73,7 @@ class SendNotificationsFromEntityActivityCommand extends Command
 
         foreach ($messages as $activity)
         {
-            //if ($activity->sentNotifications === true) continue;
+            if ($activity->sentNotifications === true) continue;
 
             // Find users that track the project.
             foreach ($activity->targets as $targetNTI)
