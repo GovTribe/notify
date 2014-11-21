@@ -196,7 +196,7 @@ ul li, ol li {
               <p>Hi there!</p>
             @endif
             <p>This is to let you know that a project you're tracking has been updated.</p>
-            <h1>{{$updateDetails ? $updateDetails : $projectName}}</h1>
+            <h1>{{$updateDetails}}</h1>
             <p>{{$synopsis}}</p>
             <table>
               <tr>

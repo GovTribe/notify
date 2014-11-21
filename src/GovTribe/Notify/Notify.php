@@ -79,6 +79,8 @@ class Notify
      */
     public function sendEmail(User $user, $message, $target)
     {
+        if (!$message) return;
+
         $synopses = $target->getOriginal('synopses');
         $synopsis = end($synopses);
 
