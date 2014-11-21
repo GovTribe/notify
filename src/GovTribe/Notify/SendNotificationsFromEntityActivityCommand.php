@@ -2,15 +2,16 @@
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 use Symfony\Component\Console\Input\InputArgument;
 use GovTribe\Notify\Facades\Notify;
 use Activity;
 use Project;
-use User;
 use Kinvey;
 use DB;
 use Str;
 use MongoDate;
+use Carbon\Carbon;
 
 class SendNotificationsFromEntityActivityCommand extends Command
 {
@@ -49,11 +50,12 @@ class SendNotificationsFromEntityActivityCommand extends Command
     {
         $this->info('Sending user notifications based on entity activity');
 
-        $since = \Carbon\Carbon::now()->subMinutes(60)->timestamp;
+        $since = Carbon::now()->subMinutes(60)->timestamp;
 
         $sent = $this->sendNotificationsFromProjectActivity($since);
 
         $this->info('Sent ' . $sent . ' notification(s)');
+        Log::info('Sent ' . $sent . ' notification(s)');
     }
 
     /**
@@ -64,6 +66,8 @@ class SendNotificationsFromEntityActivityCommand extends Command
      */
     protected function sendNotificationsFromProjectActivity($since)
     {
+        $userClassName = Config::get('auth.model');
+
         $sent = 0;
 
         $messages = Activity::whereRaw([
@@ -81,7 +85,7 @@ class SendNotificationsFromEntityActivityCommand extends Command
                 if ($targetNTI['type'] === 'project') $projectId = (string) $targetNTI['_id'];
             }
 
-            $trackers = User::where(['hording._id' => $projectId])->get();
+            $trackers = $userClassName::where(['hording._id' => $projectId])->get();
 
             if($trackers->count())
             {
