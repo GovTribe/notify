@@ -1,6 +1,7 @@
 <?php namespace GovTribe\Notify;
 
 use Project;
+use Carbon\Carbon;
 
 trait ActivityNotifyTrait {
 
@@ -202,6 +203,7 @@ trait ActivityNotifyTrait {
 	{
 		$actions = $this->attributes['actions'];
 		$project = $this->getLoadedProject();
+		$dueDate = $this->getDueDate($project);
 
 		$fmt = \NumberFormatter::create ('en_US', \NumberFormatter::ORDINAL);
 
@@ -209,7 +211,7 @@ trait ActivityNotifyTrait {
 			'project' => $project,
 			'projectName' => '"' . str_limit($project->name, 90) . '"',
 			'projectVersionOrdinal' => $fmt->format($project->version),
-			'dueDate' => isset($project->dueDate) ? $project->dueDate->format('n/j/y') : null,
+			'dueDate' => $dueDate ? $dueDate->format('n/j/y') : null,
 			'setAsideType' => $project->setAsideType,
 			'currentWorkflowStatus' => $project->workflowStatus,
 			'updated' => isset($actions['updated']) ? true : false,
@@ -253,6 +255,45 @@ trait ActivityNotifyTrait {
 		}
 
 		return $vars;
+	}
+
+	/**
+	 * Get the project's due date vars.
+	 *
+	 * @param  object $project
+	 * @return object
+	 */
+	public function getDueDate($project)
+	{
+		$impd = $project->importantDates;
+
+		if (isset($impd['Solicitation Due']['date']))
+		{
+			$solicitationDueDate = Carbon::createFromTimestamp($impd['Solicitation Due']['date']->sec);
+		}
+		else $solicitationDueDate = false;
+
+		if ($impd['Presolicitation Due']['date'])
+		{
+			$presolicitationDueDate = Carbon::createFromTimestamp($impd['Presolicitation Due']['date']->sec);
+		}
+		else $presolicitationDueDate = false;
+
+		if ($presolicitationDueDate && $solicitationDueDate)
+		{
+			$dueDate = $solicitationDueDate;
+		}
+		elseif ($solicitationDueDate)
+		{
+			$dueDate = $solicitationDueDate;
+		}
+		elseif ($presolicitationDueDate)
+		{
+			$dueDate = $presolicitationDueDate;
+		}
+		else $dueDate = false;
+
+		return $dueDate;
 	}
 
 	/**

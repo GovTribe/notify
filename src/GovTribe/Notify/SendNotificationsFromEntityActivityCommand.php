@@ -49,7 +49,7 @@ class SendNotificationsFromEntityActivityCommand extends Command
     {
         $this->info('Sending user notifications based on entity activity');
 
-        $since = \Carbon\Carbon::now()->subMinutes(120)->timestamp;
+        $since = \Carbon\Carbon::now()->subMinutes(60)->timestamp;
 
         $sent = $this->sendNotificationsFromProjectActivity($since);
 
@@ -80,7 +80,7 @@ class SendNotificationsFromEntityActivityCommand extends Command
             $activity = new Activity;
             $activity->setRawAttributes($cursor->getNext(), true);
 
-            //if ($activity->sentNotifications === true) continue;
+            if ($activity->sentNotifications === true) continue;
 
             // Find users that track the project.
             foreach ($activity->targets as $targetNTI)
